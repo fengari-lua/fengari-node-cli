@@ -1,0 +1,34 @@
+{
+	"name": "fengari-node-cli",
+	"version": "0.0.1",
+	"description": " The Lua command line application, but using fengari under node",
+	"bin": "src/lua-cli.js",
+	"directories": {
+		"lib": "src"
+	},
+	"scripts": {
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/fengari-lua/fengari-node-cli.git"
+	},
+	"keywords": [
+		"lua",
+		"fengari",
+		"repl",
+		"cli"
+	],
+	"contributors": [
+		"Benoit Giannangeli <giann008@gmail.com>",
+		"Daurnimator <quae@daurnimator.com>"
+	],
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/fengari-lua/fengari-node-cli/issues"
+	},
+	"homepage": "https://github.com/fengari-lua/fengari-node-cli#readme",
+	"dependencies": {
+		"fengari": "fengari-lua/fengari",
+		"readline-sync": "^1.4.7"
+	}
+}

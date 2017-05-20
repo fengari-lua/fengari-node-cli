@@ -3,9 +3,10 @@
 
 global.WEB = false;
 
-const lua          = require('../../src/lua.js');
-const lauxlib      = require('../../src/lauxlib.js');
-const lualib       = require('../../src/lualib.js');
+const fengari = require('fengari');
+const lua     = fengari.lua;
+const lauxlib = fengari.lauxlib;
+const lualib  = fengari.lualib;
 
 const readlineSync = require('readline-sync');
 
