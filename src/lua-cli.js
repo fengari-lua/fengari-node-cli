@@ -52,7 +52,7 @@ const dochunk = function(L, status) {
 };
 
 const dofile = function(L, name) {
-    return dochunk(L, lauxlib.luaL_loadfile(L, lua.to_luastring(name)));
+    return dochunk(L, lauxlib.luaL_loadfile(L, name?lua.to_luastring(name):null));
 };
 
 const dostring = function(L, s, name) {
