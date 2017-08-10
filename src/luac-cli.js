@@ -3,11 +3,15 @@
 
 global.WEB = false;
 
-const lua      = require('../node_modules/fengari/src/lua.js');
-const CT       = require('../node_modules/fengari/src/defs.js').CT;
-const lauxlib  = require('../node_modules/fengari/src/lauxlib.js');
-const luaconf  = require('../node_modules/fengari/src/luaconf.js');
-const lopcodes = require('../node_modules/fengari/src/lopcodes.js');
+// We need some fengari internals
+let fengariPath = require.resolve("fengari");
+fengariPath = fengariPath.substr(0, fengariPath.lastIndexOf("/"));
+
+const lua      = require(`${fengariPath}/lua.js`);
+const CT       = require(`${fengariPath}/defs.js`).CT;
+const lauxlib  = require(`${fengariPath}/lauxlib.js`);
+const luaconf  = require(`${fengariPath}/luaconf.js`);
+const lopcodes = require(`${fengariPath}/lopcodes.js`);
 const ops      = lopcodes.OpCodesI;
 
 const fs       = require("fs");
@@ -307,7 +311,7 @@ const PrintCode = function(f) {
                 break;
             }
             case ops.OP_SETTABUP: {
-                print(`\t; ${UPVALNAME(f, b)}`);
+                print(`\t; ${UPVALNAME(f, a)}`);
                 if (lopcodes.ISK(b)) {
                     print(" ");
                     PrintConstant(f, lopcodes.INDEXK(b));
@@ -358,7 +362,7 @@ const PrintCode = function(f) {
                 break;
             }
             case ops.OP_CLOSURE: {
-                print(`\t; ${f.p[bx]}`); // TODO: %p
+                print(`\t; 0x${f.p[bx].id.toString(16)}`); // TODO: %p
                 break;
             }
             case ops.OP_SETLIST: {

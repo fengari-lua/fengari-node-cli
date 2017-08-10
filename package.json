@@ -2,7 +2,10 @@
 	"name": "fengari-node-cli",
 	"version": "0.0.1",
 	"description": " The Lua command line application, but using fengari under node",
-	"bin": "src/lua-cli.js",
+	"bin": {
+		"fengari": "./src/lua-cli.js",
+		"fengaric": "./src/luac-cli.js"
+	},
 	"directories": {
 		"lib": "src"
 	},
