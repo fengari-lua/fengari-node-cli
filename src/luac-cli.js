@@ -264,7 +264,10 @@ const PrintCode = function(f) {
         if (line > 0) print(`[${line}]\t`);
         else print("[-]\t");
 
-        print(`${lopcodes.OpCodes[o].substr(0,9)}\t`);
+        let opcode = lopcodes.OpCodes[o].substr(0,9);
+        let tabfill = 9 - opcode.length;
+
+        print(`${opcode}${" ".repeat(tabfill)}\t`);
 
         switch(lopcodes.getOpMode(o)) {
             case lopcodes.iABC: {
@@ -348,9 +351,9 @@ const PrintCode = function(f) {
                 if (lopcodes.ISK(b) || lopcodes.ISK(c)) {
                     print("\t; ");
                     if (lopcodes.ISK(b)) PrintConstant(f, lopcodes.INDEXK(b));
-                    else print("-");
+                    else print("- ");
                     if (lopcodes.ISK(c)) PrintConstant(f, lopcodes.INDEXK(c));
-                    else print("-");
+                    else print("- ");
                 }
                 break;
             }
@@ -384,7 +387,7 @@ const PrintCode = function(f) {
 };
 
 const SS = function(n) {
-    return n > 1 ? "s" : "";
+    return n === 1 ? "" : "s";
 };
 
 const PrintHeader = function(f) {
