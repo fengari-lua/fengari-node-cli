@@ -146,7 +146,7 @@ const pmain = function(L) {
     for (i = 0; i < argc; i++) {
         let filename = argv[i] === "-" ? null : argv[i];
         if (lauxlib.luaL_loadfile(L, lua.to_luastring(filename)) !== lua.LUA_OK)
-            fatal(lua.to_jstring(lua.lua_tostring(L,-1)));
+            fatal(lua.lua_tojsstring(L,-1));
     }
 
     let f = combine(L, argc);
@@ -207,7 +207,7 @@ const PrintString = function(ts) {
                 if (isprint(c))
                     print(String.fromCharCode(c));
                 else
-                    print(`0x${c.toString(16)}`);
+                    print(`\\${sprintf("%03d", c)}`);
         }
     }
 
@@ -231,7 +231,7 @@ const PrintConstant = function(f, i) {
             break;
         }
         case CT.LUA_TNUMINT:
-            print(sprintf("%d", o.value));
+            print(sprintf(luaconf.LUA_INTEGER_FMT, o.value));
             break;
         case CT.LUA_TSHRSTR: case CT.LUA_TLNGSTR:
             PrintString(o);
