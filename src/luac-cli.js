@@ -17,7 +17,7 @@ const ops      = lopcodes.OpCodesI;
 const fs       = require("fs");
 const sprintf  = require("sprintf-js").sprintf;
 
-const PROGNAME = "luac";      /* default program name */
+const PROGNAME = "fengaric";      /* default program name */
 const OUTPUT   =  PROGNAME + ".out";  /* default output file */
 
 let listing = false;   /* list bytecodes? */
@@ -64,7 +64,6 @@ const doargs = function() {
 
         if (arg[0] !== "-")  /* end of options; keep it */
             break;
-
         else if (arg === "--") {  /* end of options; skip it */
             ++i;
             if (version) ++version;
@@ -100,24 +99,28 @@ const doargs = function() {
     return i;
 };
 
-const FUNCTION = "(function()end)();";
+const FUNCTION = lua.to_luastring("(function()end)();");
 
 const reader = function(L, ud) {
     if (ud--)
-        return lua.to_luastring(FUNCTION);
+        return FUNCTION;
     else
         return null;
 };
 
+const toproto = function(L, i) {
+    return lua.lua_topointer(L, i).p;
+};
+
 const combine = function(L, n) {
     if (n === 1)
-        return lua.lua_topointer(L, -1).p;
+        return toproto(L, -1);
     else {
         let i = n;
         if (lua.lua_load(L, reader, i, lua.to_luastring(`=(${PROGNAME})`), null) !== lua.LUA_OK)
             fatal(lua.lua_tojsstring(L, -1));
 
-        let f = lua.lua_topointer(L, -1).p;
+        let f = toproto(L, -1);
         for (i = 0; i < n; i++) {
             f.p[i] = lua.lua_topointer(L, i - n - 1).p;
             if (f.p[i].upvalues.length > 0)
@@ -129,7 +132,7 @@ const combine = function(L, n) {
 };
 
 const writer = function(L, p, size, u) {
-    return fs.writeSync(u, new Buffer(p), 0, size) > 0 ? 0 : 1;
+    return fs.writeSync(u, Buffer.from(p), 0, size) > 0 ? 0 : 1;
 };
 
 const pmain = function(L) {
@@ -175,7 +178,7 @@ const main = function() {
     lua.lua_pushlightuserdata(L, process.argv.slice(i));
 
     if (lua.lua_pcall(L,2,0,0) !== lua.LUA_OK)
-        fatal(lua.lua_tostring(L,-1));
+        fatal(lua.lua_tojsstring(L,-1));
 
     lua.lua_close(L);
     process.exit(0);
@@ -281,7 +284,7 @@ const PrintCode = function(f) {
             case lopcodes.iABx: {
                 print(`${a}`);
                 if (lopcodes.getBMode(o) == lopcodes.OpArgK) print(` ${MYK(bx)}`);
-                if (lopcodes.getBMode(o) == lopcodes.OpArgU) print(` bx`);
+                if (lopcodes.getBMode(o) == lopcodes.OpArgU) print(` ${bx}`);
                 break;
             }
             case lopcodes.iAsBx: {
@@ -351,9 +354,10 @@ const PrintCode = function(f) {
                 if (lopcodes.ISK(b) || lopcodes.ISK(c)) {
                     print("\t; ");
                     if (lopcodes.ISK(b)) PrintConstant(f, lopcodes.INDEXK(b));
-                    else print("- ");
+                    else print("-");
+                    print(" ");
                     if (lopcodes.ISK(c)) PrintConstant(f, lopcodes.INDEXK(c));
-                    else print("- ");
+                    else print("-");
                 }
                 break;
             }
@@ -395,9 +399,9 @@ const PrintHeader = function(f) {
     if (s[0] === "@".charCodeAt(0) || s[0] === "=".charCodeAt(0))
         s = s.slice(1);
     else if (s[0] === lua.LUA_SIGNATURE.charCodeAt(0))
-        s = lua.to_luastring("(bstring");
+        s = lua.to_luastring("(bstring)");
     else
-        s = lua.to_luastring("(string");
+        s = lua.to_luastring("(string)");
 
     print(`\n${f.linedefined === 0 ? "main" : "function"} <${lua.to_jsstring(s)}:${f.linedefined},${f.lastlinedefined}> (${f.code.length} instruction${SS(f.code.length)} at 0x${f.id.toString(16)})\n`);
     print(`${f.numparams}${f.is_vararg ? "+" : ""} param${SS(f.numparams)}, ${f.maxstacksize} slot${SS(f.maxstacksize)}, ${f.upvalues.length} upvalue${SS(f.upvalues.length)}, `);
@@ -428,10 +432,11 @@ const PrintDebug = function(f) {
 };
 
 const PrintFunction = function(f, full) {
+    let n = f.p.length;
     PrintHeader(f);
     PrintCode(f);
     if (full) PrintDebug(f);
-    for (let i = 0; i < f.p.length; i++)
+    for (let i = 0; i < n; i++)
         PrintFunction(f.p[i], full);
 };
 
