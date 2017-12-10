@@ -1,0 +1,12 @@
+language: node
+
+cache: yarn
+
+install:
+  - yarn
+
+script:
+  - yarn lint
+
+notifications:
+  email: false
