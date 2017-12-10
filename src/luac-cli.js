@@ -144,8 +144,8 @@ const pmain = function(L) {
         fatal("too many input files");
 
     for (i = 0; i < argc; i++) {
-        let filename = argv[i] === "-" ? null : argv[i];
-        if (lauxlib.luaL_loadfile(L, lua.to_luastring(filename)) !== lua.LUA_OK)
+        let filename = argv[i] === "-" ? null : lua.to_luastring(argv[i]);
+        if (lauxlib.luaL_loadfile(L, filename) !== lua.LUA_OK)
             fatal(lua.lua_tojsstring(L,-1));
     }
 
