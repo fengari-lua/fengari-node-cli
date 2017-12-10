@@ -43,7 +43,7 @@ const usage = function(message) {
         `usage: ${progname} [options] [filename]\n`
         + `Available options are:\n`
         + `  -l       list (use -l -l for full listing)\n`
-        + `  -o name  output to file 'name' (default is \"%{OUTPUT}\")\n`
+        + `  -o name  output to file 'name' (default is "%{OUTPUT}")\n`
         + `  -p       parse only\n`
         + `  -s       strip debug information\n`
         + `  -v       show version information\n`

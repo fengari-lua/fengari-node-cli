@@ -104,46 +104,46 @@ let has_e = false;
             return;
         }
         switch(process.argv[i][1]) {
-        case '-':
-            if (process.argv[i][2]) {
-                print_usage(process.argv[script]);
-                return process.exit(1);
-            }
-            script = i + 1;
-            return;
-        case void 0: /* script name is '-' */
-            return;
-        case 'E':
-            has_E = true;
-            break;
-        case 'i':
-            has_i = true;
-            /* (-i implies -v) */
-            /* falls through */
-        case 'v':
-            if (process.argv[i].length > 2) {
-                /* invalid option */
-                print_usage(process.argv[script]);
-                return process.exit(1);
-            }
-            has_v = true;
-            break;
-        case 'e':
-            has_e = true;
-            /* falls through */
-        case 'l':  /* both options need an argument */
-            if (process.argv[i].length < 3) {  /* no concatenated argument? */
-                i++;  /* try next 'process.argv' */
-                if (process.argv.length <= i || process.argv[i][0] === '-') {
-                    /* no next argument or it is another option */
+            case '-':
+                if (process.argv[i][2]) {
                     print_usage(process.argv[script]);
                     return process.exit(1);
                 }
-            }
-            break;
-        default:  /* invalid option */
-            print_usage(process.argv[script]);
-            return process.exit(1);
+                script = i + 1;
+                return;
+            case void 0: /* script name is '-' */
+                return;
+            case 'E':
+                has_E = true;
+                break;
+            case 'i':
+                has_i = true;
+                /* (-i implies -v) */
+                /* falls through */
+            case 'v':
+                if (process.argv[i].length > 2) {
+                    /* invalid option */
+                    print_usage(process.argv[script]);
+                    return process.exit(1);
+                }
+                has_v = true;
+                break;
+            case 'e':
+                has_e = true;
+                /* falls through */
+            case 'l':  /* both options need an argument */
+                if (process.argv[i].length < 3) {  /* no concatenated argument? */
+                    i++;  /* try next 'process.argv' */
+                    if (process.argv.length <= i || process.argv[i][0] === '-') {
+                        /* no next argument or it is another option */
+                        print_usage(process.argv[script]);
+                        return process.exit(1);
+                    }
+                }
+                break;
+            default:  /* invalid option */
+                print_usage(process.argv[script]);
+                return process.exit(1);
         }
     }
     script = i;
