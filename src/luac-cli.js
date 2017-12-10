@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 "use strict";
 
-global.WEB = false;
-
 // We need some fengari internals
 let fengariPath = require.resolve("fengari");
 fengariPath = fengariPath.substr(0, fengariPath.lastIndexOf("/"));
