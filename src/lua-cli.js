@@ -1,81 +1,125 @@
 #!/usr/bin/env node
 "use strict";
 
-const fengari = require('fengari');
-const lua     = fengari.lua;
-const lauxlib = fengari.lauxlib;
-const lualib  = fengari.lualib;
+const {
+    FENGARI_COPYRIGHT,
+    to_jsstring,
+    to_luastring,
+    lua: {
+        LUA_ERRSYNTAX,
+        LUA_MULTRET,
+        LUA_OK,
+        LUA_REGISTRYINDEX,
+        LUA_TSTRING,
+        LUA_TTABLE,
+        LUA_VERSUFFIX,
+        lua_createtable,
+        lua_getglobal,
+        lua_gettop,
+        lua_insert,
+        lua_pcall,
+        lua_pop,
+        lua_pushboolean,
+        lua_pushcfunction,
+        lua_pushliteral,
+        lua_pushstring,
+        lua_rawgeti,
+        lua_remove,
+        lua_setfield,
+        lua_setglobal,
+        lua_seti,
+        lua_settop,
+        lua_tojsstring,
+        lua_tostring,
+        lua_type
+    },
+    lauxlib: {
+        luaL_callmeta,
+        luaL_checkstack,
+        luaL_error,
+        luaL_len,
+        luaL_loadbuffer,
+        luaL_loadfile,
+        luaL_newstate,
+        luaL_traceback,
+        luaL_typename,
+        lua_writestringerror
+    },
+    lualib: {
+        luaL_openlibs
+    }
+} = require('fengari');
 
 const readlineSync = require('readline-sync');
 
-const stdin = lua.to_luastring("=stdin");
-const _PROMPT = lua.to_luastring("_PROMPT");
-const _PROMPT2 = lua.to_luastring("_PROMPT2");
+const stdin = to_luastring("=stdin");
+const _PROMPT = to_luastring("_PROMPT");
+const _PROMPT2 = to_luastring("_PROMPT2");
 
 const report = function(L, status) {
-    if (status !== lua.LUA_OK) {
-        lauxlib.lua_writestringerror(`${lua.lua_tojsstring(L, -1)}\n`);
-        lua.lua_pop(L, 1);
+    if (status !== LUA_OK) {
+        lua_writestringerror(`${lua_tojsstring(L, -1)}\n`);
+        lua_pop(L, 1);
     }
     return status;
 };
 
 const msghandler = function(L) {
-    let msg = lua.lua_tostring(L, 1);
+    let msg = lua_tostring(L, 1);
     if (msg === null) {  /* is error object not a string? */
-        if (lauxlib.luaL_callmeta(L, 1, lua.to_luastring("__tostring")) &&  /* does it have a metamethod */
-          lua.lua_type(L, -1) == lua.LUA_TSTRING)  /* that produces a string? */
+        if (luaL_callmeta(L, 1, to_luastring("__tostring")) &&  /* does it have a metamethod */
+          lua_type(L, -1) == LUA_TSTRING)  /* that produces a string? */
             return 1;  /* that is the message */
         else
-            msg = lua.lua_pushstring(L, lua.to_luastring(`(error object is a ${lua.to_jsstring(lauxlib.luaL_typename(L, 1))} value)`));
+            msg = lua_pushstring(L, to_luastring(`(error object is a ${to_jsstring(luaL_typename(L, 1))} value)`));
     }
-    lauxlib.luaL_traceback(L, L, msg, 1);  /* append a standard traceback */
+    luaL_traceback(L, L, msg, 1);  /* append a standard traceback */
     return 1;  /* return the traceback */
 };
 
 const docall = function(L, narg, nres) {
-    let base = lua.lua_gettop(L) - narg;
-    lua.lua_pushcfunction(L, msghandler);
-    lua.lua_insert(L, base);
-    let status = lua.lua_pcall(L, narg, nres, base);
-    lua.lua_remove(L, base);
+    let base = lua_gettop(L) - narg;
+    lua_pushcfunction(L, msghandler);
+    lua_insert(L, base);
+    let status = lua_pcall(L, narg, nres, base);
+    lua_remove(L, base);
     return status;
 };
 
 const dochunk = function(L, status) {
-    if (status === lua.LUA_OK) {
+    if (status === LUA_OK) {
         status = docall(L, 0, 0);
     }
     return report(L, status);
 };
 
 const dofile = function(L, name) {
-    return dochunk(L, lauxlib.luaL_loadfile(L, name?lua.to_luastring(name):null));
+    return dochunk(L, luaL_loadfile(L, name?to_luastring(name):null));
 };
 
 const dostring = function(L, s, name) {
-    let buffer = lua.to_luastring(s);
-    return dochunk(L, lauxlib.luaL_loadbuffer(L, buffer, buffer.length, lua.to_luastring(name)));
+    let buffer = to_luastring(s);
+    return dochunk(L, luaL_loadbuffer(L, buffer, buffer.length, to_luastring(name)));
 };
 
 const dolibrary = function(L, name) {
-    lua.lua_getglobal(L, lua.to_luastring("require"));
-    lua.lua_pushliteral(L, name);
+    lua_getglobal(L, to_luastring("require"));
+    lua_pushliteral(L, name);
     let status = docall(L, 1, 1);  /* call 'require(name)' */
-    if (status === lua.LUA_OK)
-        lua.lua_setglobal(L, lua.to_luastring(name));  /* global[name] = require return */
+    if (status === LUA_OK)
+        lua_setglobal(L, to_luastring(name));  /* global[name] = require return */
     return report(L, status);
 };
 
 let progname = process.argv[1];
 
 const print_usage = function(badoption) {
-    lauxlib.lua_writestringerror(`${progname}: `);
+    lua_writestringerror(`${progname}: `);
     if (badoption[1] === "e" || badoption[1] === "l")
-        lauxlib.lua_writestringerror(`'${badoption}' needs argument\n`);
+        lua_writestringerror(`'${badoption}' needs argument\n`);
     else
-        lauxlib.lua_writestringerror(`'unrecognized option '${badoption}'\n`);
-    lauxlib.lua_writestringerror(
+        lua_writestringerror(`'unrecognized option '${badoption}'\n`);
+    lua_writestringerror(
         `usage: ${progname} [options] [script [args]]\n` +
         "Available options are:\n" +
         "  -e stat  execute string 'stat'\n" +
@@ -88,7 +132,7 @@ const print_usage = function(badoption) {
     );
 };
 
-const L = lauxlib.luaL_newstate();
+const L = luaL_newstate();
 
 let script = 2; // Where to start args from
 let has_E = false;
@@ -150,28 +194,28 @@ let has_e = false;
 })();
 
 if (has_v)
-    console.log(lua.FENGARI_COPYRIGHT);
+    console.log(FENGARI_COPYRIGHT);
 
 if (has_E) {
     /* signal for libraries to ignore env. vars. */
-    lua.lua_pushboolean(L, 1);
-    lua.lua_setfield(L, lua.LUA_REGISTRYINDEX, lua.to_luastring("LUA_NOENV"));
+    lua_pushboolean(L, 1);
+    lua_setfield(L, LUA_REGISTRYINDEX, to_luastring("LUA_NOENV"));
 }
 
 /* open standard libraries */
-lualib.luaL_openlibs(L);
+luaL_openlibs(L);
 
 /* create table 'arg' */
-lua.lua_createtable(L, process.argv.length - (script + 1), script + 1);
+lua_createtable(L, process.argv.length - (script + 1), script + 1);
 for (let i = 0; i < process.argv.length; i++) {
-    lua.lua_pushliteral(L, process.argv[i]);
-    lua.lua_seti(L, -2, i - script); /* TODO: rawseti */
+    lua_pushliteral(L, process.argv[i]);
+    lua_seti(L, -2, i - script); /* TODO: rawseti */
 }
-lua.lua_setglobal(L, lua.to_luastring("arg"));
+lua_setglobal(L, to_luastring("arg"));
 
 if (!has_E) {
     /* run LUA_INIT */
-    let name = "LUA_INIT"+lua.LUA_VERSUFFIX;
+    let name = "LUA_INIT"+LUA_VERSUFFIX;
     let init = process.env[name];
     if (!init) {
         name = "LUA_INIT";
@@ -184,7 +228,7 @@ if (!has_E) {
         } else {
             status = dostring(L, init, name);
         }
-        if (status !== lua.LUA_OK) {
+        if (status !== LUA_OK) {
             return process.exit(1);
         }
     }
@@ -203,21 +247,21 @@ for (let i = 1; i < script; i++) {
         } else {
             status = dolibrary(L, extra);
         }
-        if (status !== lua.LUA_OK) {
+        if (status !== LUA_OK) {
             return process.exit(1);
         }
     }
 }
 
 const pushargs = function(L) {
-    if (lua.lua_getglobal(L, lua.to_luastring("arg")) !== lua.LUA_TTABLE)
-        lauxlib.luaL_error(L, lua.to_luastring("'arg' is not a table"));
-    let n = lauxlib.luaL_len(L, -1);
-    lauxlib.luaL_checkstack(L, n+3, lua.to_luastring("too many arguments to script"));
+    if (lua_getglobal(L, to_luastring("arg")) !== LUA_TTABLE)
+        luaL_error(L, to_luastring("'arg' is not a table"));
+    let n = luaL_len(L, -1);
+    luaL_checkstack(L, n+3, to_luastring("too many arguments to script"));
     let i;
     for (i=1; i<=n; i++)
-        lua.lua_rawgeti(L, -i, i);
-    lua.lua_remove(L, -i);
+        lua_rawgeti(L, -i, i);
+    lua_remove(L, -i);
     return n;
 };
 
@@ -227,76 +271,76 @@ const handle_script = function(L, argv) {
     if (fname === "-" && argv[-1] !== "--")
         fname = null;  /* stdin */
     else
-        fname = lua.to_luastring(fname);
-    status = lauxlib.luaL_loadfile(L, fname);
-    if (status === lua.LUA_OK) {
+        fname = to_luastring(fname);
+    status = luaL_loadfile(L, fname);
+    if (status === LUA_OK) {
         let n = pushargs(L); /* push arguments to script */
-        status = docall(L, n, lua.LUA_MULTRET);
+        status = docall(L, n, LUA_MULTRET);
     }
     return report(L, status);
 };
 
 const doREPL = function(L) {
     for (;;) {
-        lua.lua_getglobal(L, _PROMPT);
+        lua_getglobal(L, _PROMPT);
         let input = readlineSync.prompt({
-            prompt: lua.lua_tojsstring(L, -1) || '> '
+            prompt: lua_tojsstring(L, -1) || '> '
         });
-        lua.lua_pop(L, 1);
+        lua_pop(L, 1);
 
         if (input.length === 0)
             continue;
 
         let status;
         {
-            let buffer = lua.to_luastring("return " + input);
-            status = lauxlib.luaL_loadbuffer(L, buffer, buffer.length, stdin);
+            let buffer = to_luastring("return " + input);
+            status = luaL_loadbuffer(L, buffer, buffer.length, stdin);
         }
-        if (status !== lua.LUA_OK) {
-            lua.lua_pop(L, 1);
-            let buffer = lua.to_luastring(input);
-            if (lauxlib.luaL_loadbuffer(L, buffer, buffer.length, stdin) === lua.LUA_OK) {
-                status = lua.LUA_OK;
+        if (status !== LUA_OK) {
+            lua_pop(L, 1);
+            let buffer = to_luastring(input);
+            if (luaL_loadbuffer(L, buffer, buffer.length, stdin) === LUA_OK) {
+                status = LUA_OK;
             }
         }
-        while (status === lua.LUA_ERRSYNTAX && lua.lua_tojsstring(L, -1).endsWith("<eof>")) {
+        while (status === LUA_ERRSYNTAX && lua_tojsstring(L, -1).endsWith("<eof>")) {
             /* continuation */
-            lua.lua_pop(L, 1);
-            lua.lua_getglobal(L, _PROMPT2);
+            lua_pop(L, 1);
+            lua_getglobal(L, _PROMPT2);
             input += "\n" + readlineSync.prompt({
-                prompt: lua.lua_tojsstring(L, -1) || '>> '
+                prompt: lua_tojsstring(L, -1) || '>> '
             });
-            lua.lua_pop(L, 1);
-            let buffer = lua.to_luastring(input);
-            status = lauxlib.luaL_loadbuffer(L, buffer, buffer.length, stdin);
+            lua_pop(L, 1);
+            let buffer = to_luastring(input);
+            status = luaL_loadbuffer(L, buffer, buffer.length, stdin);
         }
-        if (status === lua.LUA_OK) {
-            status = docall(L, 0, lua.LUA_MULTRET);
+        if (status === LUA_OK) {
+            status = docall(L, 0, LUA_MULTRET);
         }
-        if (status === lua.LUA_OK) {
-            let n = lua.lua_gettop(L);
+        if (status === LUA_OK) {
+            let n = lua_gettop(L);
             if (n > 0) {  /* any result to be printed? */
-                lua.lua_getglobal(L, lua.to_luastring("print"));
-                lua.lua_insert(L, 1);
-                if (lua.lua_pcall(L, n, 0, 0) != lua.LUA_OK) {
-                    lauxlib.lua_writestringerror(`error calling 'print' (${lua.lua_tojsstring(L, -1)})\n`);
+                lua_getglobal(L, to_luastring("print"));
+                lua_insert(L, 1);
+                if (lua_pcall(L, n, 0, 0) != LUA_OK) {
+                    lua_writestringerror(`error calling 'print' (${lua_tojsstring(L, -1)})\n`);
                 }
             }
         } else {
             report(L, status);
         }
-        lua.lua_settop(L, 0);  /* remove eventual returns */
+        lua_settop(L, 0);  /* remove eventual returns */
     }
 };
 
 if (script < process.argv.length &&  /* execute main script (if there is one) */
-    handle_script(L, process.argv.slice(script)) !== lua.LUA_OK) {
+    handle_script(L, process.argv.slice(script)) !== LUA_OK) {
     /* success */
 } else if (has_i) {
     doREPL(L);
 } else if (script == process.argv.length && !has_e && !has_v) {  /* no arguments? */
     if (process.stdin.isTTY) {  /* running in interactive mode? */
-        console.log(lua.FENGARI_COPYRIGHT);
+        console.log(FENGARI_COPYRIGHT);
         doREPL(L);  /* do read-eval-print loop */
     } else {
         dofile(L, null);

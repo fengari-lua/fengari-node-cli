@@ -1,16 +1,95 @@
 #!/usr/bin/env node
 "use strict";
 
-// We need some fengari internals
-let fengariPath = require.resolve("fengari");
-fengariPath = fengariPath.substr(0, fengariPath.lastIndexOf("/"));
+const {
+    to_jsstring,
+    to_luastring,
+    lua: {
+        LUA_COPYRIGHT,
+        LUA_OK,
+        LUA_SIGNATURE,
+        lua_checkstack,
+        lua_close,
+        lua_dump,
+        lua_load,
+        lua_pcall,
+        lua_pushcfunction,
+        lua_pushinteger,
+        lua_pushlightuserdata,
+        lua_tointeger,
+        lua_tojsstring,
+        lua_topointer,
+        lua_touserdata
+    },
+    lauxlib: {
+        luaL_loadfile,
+        luaL_newstate
+    }
+} = require('fengari');
 
-const lua      = require(`${fengariPath}/lua.js`);
-const CT       = require(`${fengariPath}/defs.js`).CT;
-const lauxlib  = require(`${fengariPath}/lauxlib.js`);
-const luaconf  = require(`${fengariPath}/luaconf.js`);
-const lopcodes = require(`${fengariPath}/lopcodes.js`);
-const ops      = lopcodes.OpCodesI;
+/* We need some fengari internals */
+let fengariPath = require.resolve('fengari');
+fengariPath = fengariPath.substr(0, fengariPath.lastIndexOf('/'));
+const {
+    constant_types: {
+        LUA_TBOOLEAN,
+        LUA_TLNGSTR,
+        LUA_TNIL,
+        LUA_TNUMFLT,
+        LUA_TNUMINT,
+        LUA_TSHRSTR
+    }
+} = require(`${fengariPath}/defs.js`);
+const {
+    INDEXK,
+    ISK,
+    OpArgK,
+    OpArgN,
+    OpArgU,
+    OpCodes,
+    OpCodesI: {
+        OP_ADD,
+        OP_BAND,
+        OP_BOR,
+        OP_BXOR,
+        OP_CLOSURE,
+        OP_DIV,
+        OP_EQ,
+        OP_EXTRAARG,
+        OP_FORLOOP,
+        OP_FORPREP,
+        OP_GETTABLE,
+        OP_GETTABUP,
+        OP_GETUPVAL,
+        OP_IDIV,
+        OP_JMP,
+        OP_LE,
+        OP_LOADK,
+        OP_LT,
+        OP_MUL,
+        OP_POW,
+        OP_SELF,
+        OP_SETLIST,
+        OP_SETTABLE,
+        OP_SETTABUP,
+        OP_SETUPVAL,
+        OP_SHL,
+        OP_SHR,
+        OP_SUB,
+        OP_TFORLOOP
+    },
+    getBMode,
+    getCMode,
+    getOpMode,
+    iABC,
+    iABx,
+    iAsBx,
+    iAx
+} = require(`${fengariPath}/lopcodes.js`);
+const {
+    LUA_INTEGER_FMT,
+    LUA_NUMBER_FMT
+} = require(`${fengariPath}/luaconf.js`);
 
 const fs       = require("fs");
 const sprintf  = require("sprintf-js").sprintf;
@@ -91,13 +170,13 @@ const doargs = function() {
     }
 
     if (version) {
-        print(lua.LUA_COPYRIGHT);
+        print(LUA_COPYRIGHT);
         if (version === process.argv.length - 2) process.exit(0);
     }
     return i;
 };
 
-const FUNCTION = lua.to_luastring("(function()end)();");
+const FUNCTION = to_luastring("(function()end)();");
 
 const reader = function(L, ud) {
     if (ud--)
@@ -107,7 +186,7 @@ const reader = function(L, ud) {
 };
 
 const toproto = function(L, i) {
-    return lua.lua_topointer(L, i).p;
+    return lua_topointer(L, i).p;
 };
 
 const combine = function(L, n) {
@@ -115,12 +194,12 @@ const combine = function(L, n) {
         return toproto(L, -1);
     else {
         let i = n;
-        if (lua.lua_load(L, reader, i, lua.to_luastring(`=(${PROGNAME})`), null) !== lua.LUA_OK)
-            fatal(lua.lua_tojsstring(L, -1));
+        if (lua_load(L, reader, i, to_luastring(`=(${PROGNAME})`), null) !== LUA_OK)
+            fatal(lua_tojsstring(L, -1));
 
         let f = toproto(L, -1);
         for (i = 0; i < n; i++) {
-            f.p[i] = lua.lua_topointer(L, i - n - 1).p;
+            f.p[i] = lua_topointer(L, i - n - 1).p;
             if (f.p[i].upvalues.length > 0)
                 f.p[i].upvalues[0].instack = false;
         }
@@ -134,17 +213,17 @@ const writer = function(L, p, size, u) {
 };
 
 const pmain = function(L) {
-    let argc = lua.lua_tointeger(L,1);
-    let argv = lua.lua_touserdata(L,2);
+    let argc = lua_tointeger(L,1);
+    let argv = lua_touserdata(L,2);
 
     let i;
-    if (!lua.lua_checkstack(L,argc))
+    if (!lua_checkstack(L,argc))
         fatal("too many input files");
 
     for (i = 0; i < argc; i++) {
-        let filename = argv[i] === "-" ? null : lua.to_luastring(argv[i]);
-        if (lauxlib.luaL_loadfile(L, filename) !== lua.LUA_OK)
-            fatal(lua.lua_tojsstring(L,-1));
+        let filename = argv[i] === "-" ? null : to_luastring(argv[i]);
+        if (luaL_loadfile(L, filename) !== LUA_OK)
+            fatal(lua_tojsstring(L,-1));
     }
 
     let f = combine(L, argc);
@@ -155,7 +234,7 @@ const pmain = function(L) {
         try {
             let D = (output === null) ? process.stdout.fd : fs.openSync(output, 'w');
 
-            lua.lua_dump(L, writer, D, stripping);
+            lua_dump(L, writer, D, stripping);
         } catch (e) {
             fatal(e.message);
         }
@@ -169,16 +248,16 @@ const main = function() {
     if (process.argv.length - i <= 0)
         usage("no input files given");
 
-    let L = lauxlib.luaL_newstate();
+    let L = luaL_newstate();
 
-    lua.lua_pushcfunction(L, pmain);
-    lua.lua_pushinteger(L, process.argv.length - i);
-    lua.lua_pushlightuserdata(L, process.argv.slice(i));
+    lua_pushcfunction(L, pmain);
+    lua_pushinteger(L, process.argv.length - i);
+    lua_pushlightuserdata(L, process.argv.slice(i));
 
-    if (lua.lua_pcall(L,2,0,0) !== lua.LUA_OK)
-        fatal(lua.lua_tojsstring(L,-1));
+    if (lua_pcall(L,2,0,0) !== LUA_OK)
+        fatal(lua_tojsstring(L,-1));
 
-    lua.lua_close(L);
+    lua_close(L);
     process.exit(0);
 };
 
@@ -215,23 +294,23 @@ const PrintString = function(ts) {
 const PrintConstant = function(f, i) {
     let o = f.k[i];
     switch (o.ttype()) {
-        case CT.LUA_TNIL:
+        case LUA_TNIL:
             print("nil");
             break;
-        case CT.LUA_TBOOLEAN:
+        case LUA_TBOOLEAN:
             print(o.value ? "true" : "false");
             break;
-        case CT.LUA_TNUMFLT: {
-            let fltstr = sprintf(luaconf.LUA_NUMBER_FMT, o.value);
+        case LUA_TNUMFLT: {
+            let fltstr = sprintf(LUA_NUMBER_FMT, o.value);
             if (/^\d*$/.test(fltstr)) // Add .0 if no decimal part in string
                 fltstr = `${fltstr}.0`;
             print(fltstr);
             break;
         }
-        case CT.LUA_TNUMINT:
-            print(sprintf(luaconf.LUA_INTEGER_FMT, o.value));
+        case LUA_TNUMINT:
+            print(sprintf(LUA_INTEGER_FMT, o.value));
             break;
-        case CT.LUA_TSHRSTR: case CT.LUA_TLNGSTR:
+        case LUA_TSHRSTR: case LUA_TLNGSTR:
             PrintString(o);
             break;
         default:
@@ -241,7 +320,7 @@ const PrintConstant = function(f, i) {
 };
 
 const UPVALNAME = function(f, x) {
-    return f.upvalues[x].name ? lua.to_jsstring(f.upvalues[x].name.getstr()) : "-";
+    return f.upvalues[x].name ? to_jsstring(f.upvalues[x].name.getstr()) : "-";
 };
 
 const MYK = function(x) {
@@ -265,117 +344,117 @@ const PrintCode = function(f) {
         if (line > 0) print(`[${line}]\t`);
         else print("[-]\t");
 
-        let opcode = lopcodes.OpCodes[o].substr(0,9);
+        let opcode = OpCodes[o].substr(0,9);
         let tabfill = 9 - opcode.length;
 
         print(`${opcode}${" ".repeat(tabfill)}\t`);
 
-        switch(lopcodes.getOpMode(o)) {
-            case lopcodes.iABC: {
+        switch(getOpMode(o)) {
+            case iABC: {
                 print(`${a}`);
-                if (lopcodes.getBMode(o) != lopcodes.OpArgN)
-                    print(` ${lopcodes.ISK(b) ? MYK(lopcodes.INDEXK(b)) : b}`);
-                if (lopcodes.getCMode(o) != lopcodes.OpArgN)
-                    print(` ${lopcodes.ISK(c) ? MYK(lopcodes.INDEXK(c)) : c}`);
+                if (getBMode(o) != OpArgN)
+                    print(` ${ISK(b) ? MYK(INDEXK(b)) : b}`);
+                if (getCMode(o) != OpArgN)
+                    print(` ${ISK(c) ? MYK(INDEXK(c)) : c}`);
                 break;
             }
-            case lopcodes.iABx: {
+            case iABx: {
                 print(`${a}`);
-                if (lopcodes.getBMode(o) == lopcodes.OpArgK) print(` ${MYK(bx)}`);
-                if (lopcodes.getBMode(o) == lopcodes.OpArgU) print(` ${bx}`);
+                if (getBMode(o) == OpArgK) print(` ${MYK(bx)}`);
+                if (getBMode(o) == OpArgU) print(` ${bx}`);
                 break;
             }
-            case lopcodes.iAsBx: {
+            case iAsBx: {
                 print(`${a} ${sbx}`);
                 break;
             }
-            case lopcodes.iAx: {
+            case iAx: {
                 print(`${MYK(ax)}`);
                 break;
             }
         }
 
         switch(o) {
-            case ops.OP_LOADK: {
+            case OP_LOADK: {
                 print("\t; ");
                 PrintConstant(f, bx);
                 break;
             }
-            case ops.OP_GETUPVAL:
-            case ops.OP_SETUPVAL: {
+            case OP_GETUPVAL:
+            case OP_SETUPVAL: {
                 print(`\t; ${UPVALNAME(f, b)}`);
                 break;
             }
-            case ops.OP_GETTABUP: {
+            case OP_GETTABUP: {
                 print(`\t; ${UPVALNAME(f, b)}`);
-                if (lopcodes.ISK(c)) {
+                if (ISK(c)) {
                     print(" ");
-                    PrintConstant(f, lopcodes.INDEXK(c));
+                    PrintConstant(f, INDEXK(c));
                 }
                 break;
             }
-            case ops.OP_SETTABUP: {
+            case OP_SETTABUP: {
                 print(`\t; ${UPVALNAME(f, a)}`);
-                if (lopcodes.ISK(b)) {
+                if (ISK(b)) {
                     print(" ");
-                    PrintConstant(f, lopcodes.INDEXK(b));
+                    PrintConstant(f, INDEXK(b));
                 }
-                if (lopcodes.ISK(c)) {
+                if (ISK(c)) {
                     print(" ");
-                    PrintConstant(f, lopcodes.INDEXK(c));
+                    PrintConstant(f, INDEXK(c));
                 }
                 break;
             }
-            case ops.OP_GETTABLE:
-            case ops.OP_SELF: {
-                if (lopcodes.ISK(c)) {
+            case OP_GETTABLE:
+            case OP_SELF: {
+                if (ISK(c)) {
                     print("\t; ");
-                    PrintConstant(f, lopcodes.INDEXK(c));
+                    PrintConstant(f, INDEXK(c));
                 }
                 break;
             }
-            case ops.OP_SETTABLE:
-            case ops.OP_ADD:
-            case ops.OP_SUB:
-            case ops.OP_MUL:
-            case ops.OP_POW:
-            case ops.OP_DIV:
-            case ops.OP_IDIV:
-            case ops.OP_BAND:
-            case ops.OP_BOR:
-            case ops.OP_BXOR:
-            case ops.OP_SHL:
-            case ops.OP_SHR:
-            case ops.OP_EQ:
-            case ops.OP_LT:
-            case ops.OP_LE: {
-                if (lopcodes.ISK(b) || lopcodes.ISK(c)) {
+            case OP_SETTABLE:
+            case OP_ADD:
+            case OP_SUB:
+            case OP_MUL:
+            case OP_POW:
+            case OP_DIV:
+            case OP_IDIV:
+            case OP_BAND:
+            case OP_BOR:
+            case OP_BXOR:
+            case OP_SHL:
+            case OP_SHR:
+            case OP_EQ:
+            case OP_LT:
+            case OP_LE: {
+                if (ISK(b) || ISK(c)) {
                     print("\t; ");
-                    if (lopcodes.ISK(b)) PrintConstant(f, lopcodes.INDEXK(b));
+                    if (ISK(b)) PrintConstant(f, INDEXK(b));
                     else print("-");
                     print(" ");
-                    if (lopcodes.ISK(c)) PrintConstant(f, lopcodes.INDEXK(c));
+                    if (ISK(c)) PrintConstant(f, INDEXK(c));
                     else print("-");
                 }
                 break;
             }
-            case ops.OP_JMP:
-            case ops.OP_FORLOOP:
-            case ops.OP_FORPREP:
-            case ops.OP_TFORLOOP: {
+            case OP_JMP:
+            case OP_FORLOOP:
+            case OP_FORPREP:
+            case OP_TFORLOOP: {
                 print(`\t; to ${sbx + pc + 2}`);
                 break;
             }
-            case ops.OP_CLOSURE: {
+            case OP_CLOSURE: {
                 print(`\t; 0x${f.p[bx].id.toString(16)}`); // TODO: %p
                 break;
             }
-            case ops.OP_SETLIST: {
+            case OP_SETLIST: {
                 if (c === 0) print(`\t; ${code[++pc]}`);
                 else print(`\t; ${c}`);
                 break;
             }
-            case ops.OP_EXTRAARG: {
+            case OP_EXTRAARG: {
                 print("\t; ");
                 PrintConstant(f, ax);
                 break;
@@ -393,15 +472,15 @@ const SS = function(n) {
 };
 
 const PrintHeader = function(f) {
-    let s = f.source ? f.source.getstr() : lua.to_luastring("=?");
+    let s = f.source ? f.source.getstr() : to_luastring("=?");
     if (s[0] === "@".charCodeAt(0) || s[0] === "=".charCodeAt(0))
         s = s.slice(1);
-    else if (s[0] === lua.LUA_SIGNATURE.charCodeAt(0))
-        s = lua.to_luastring("(bstring)");
+    else if (s[0] === LUA_SIGNATURE.charCodeAt(0))
+        s = to_luastring("(bstring)");
     else
-        s = lua.to_luastring("(string)");
+        s = to_luastring("(string)");
 
-    print(`\n${f.linedefined === 0 ? "main" : "function"} <${lua.to_jsstring(s)}:${f.linedefined},${f.lastlinedefined}> (${f.code.length} instruction${SS(f.code.length)} at 0x${f.id.toString(16)})\n`);
+    print(`\n${f.linedefined === 0 ? "main" : "function"} <${to_jsstring(s)}:${f.linedefined},${f.lastlinedefined}> (${f.code.length} instruction${SS(f.code.length)} at 0x${f.id.toString(16)})\n`);
     print(`${f.numparams}${f.is_vararg ? "+" : ""} param${SS(f.numparams)}, ${f.maxstacksize} slot${SS(f.maxstacksize)}, ${f.upvalues.length} upvalue${SS(f.upvalues.length)}, `);
     print(`${f.locvars.length} local${SS(f.locvars.length)}, ${f.k.length} constant${SS(f.k.length)}, ${f.p.length} function${SS(f.p.length)}\n`);
 };
@@ -419,7 +498,7 @@ const PrintDebug = function(f) {
     print(`locals (${n}) for 0x${f.id.toString(16)}:\n`);
     for (let i = 0; i < n; i++) {
         let locvar = f.locvars[i];
-        print(`\t${i}\t${lua.to_jsstring(locvar.varname.getstr())}\t${locvar.startpc + 1}\t${locvar.endpc + 1}\n`);
+        print(`\t${i}\t${to_jsstring(locvar.varname.getstr())}\t${locvar.startpc + 1}\t${locvar.endpc + 1}\n`);
     }
 
     n = f.upvalues.length;
