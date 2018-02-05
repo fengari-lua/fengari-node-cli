@@ -32,7 +32,7 @@
 	},
 	"homepage": "https://github.com/fengari-lua/fengari-node-cli#readme",
 	"dependencies": {
-		"fengari": "fengari-lua/fengari",
+		"fengari": "^0.0.1",
 		"readline-sync": "^1.4.7",
 		"sprintf-js": "^1.1.1"
 	},

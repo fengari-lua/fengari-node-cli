@@ -311,9 +311,9 @@ fast-levenshtein@~2.0.4:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz#3d8a5c66883a16a30ca8643e851f19baa7797917"
 
-fengari@fengari-lua/fengari:
-  version "0.0.1"
-  resolved "https://codeload.github.com/fengari-lua/fengari/tar.gz/e66b47a2eb4ccdeb81adc4a8f668ce005d1c9a5e"
+fengari@^0.0.1:
+  version "0.0.1-rc.1"
+  resolved "https://registry.yarnpkg.com/fengari/-/fengari-0.0.1-rc.1.tgz#ec2733ea334d0eaf629e05eed669e91e1bd6d6c5"
   dependencies:
     readline-sync "^1.4.7"
     sprintf-js "^1.1.1"
