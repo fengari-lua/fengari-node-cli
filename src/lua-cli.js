@@ -56,6 +56,9 @@ const stdin = to_luastring("=stdin");
 const _PROMPT = to_luastring("_PROMPT");
 const _PROMPT2 = to_luastring("_PROMPT2");
 
+const LUA_INIT_VAR = "LUA_INIT";
+const LUA_INITVARVERSION = LUA_INIT_VAR + LUA_VERSUFFIX;
+
 const report = function(L, status) {
     if (status !== LUA_OK) {
         lua_writestringerror(`${lua_tojsstring(L, -1)}\n`);
@@ -215,10 +218,10 @@ lua_setglobal(L, to_luastring("arg"));
 
 if (!has_E) {
     /* run LUA_INIT */
-    let name = "LUA_INIT"+LUA_VERSUFFIX;
+    let name = LUA_INITVARVERSION;
     let init = process.env[name];
     if (!init) {
-        name = "LUA_INIT";
+        name = LUA_INIT_VAR;
         init = process.env[name];
     }
     if (init) {
