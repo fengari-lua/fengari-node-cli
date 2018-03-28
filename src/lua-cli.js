@@ -12,7 +12,6 @@ const {
         LUA_REGISTRYINDEX,
         LUA_TSTRING,
         LUA_TTABLE,
-        LUA_VERSUFFIX,
         lua_createtable,
         lua_getglobal,
         lua_gettop,
@@ -46,6 +45,7 @@ const {
         lua_writestringerror
     },
     lualib: {
+        LUA_VERSUFFIX,
         luaL_openlibs
     }
 } = require('fengari');
