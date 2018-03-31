@@ -170,7 +170,7 @@ const doargs = function() {
     }
 
     if (version) {
-        print(LUA_COPYRIGHT);
+        print(LUA_COPYRIGHT + "\n");
         if (version === process.argv.length - 2) process.exit(0);
     }
     return i;
