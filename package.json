@@ -7,10 +7,12 @@
 		"fengaric": "./src/luac-cli.js"
 	},
 	"directories": {
-		"lib": "src"
+		"lib": "src",
+		"test": "test"
 	},
 	"scripts": {
-		"lint": "eslint src/"
+		"lint": "eslint src/ test/",
+		"test": "jest"
 	},
 	"repository": {
 		"type": "git",
@@ -37,7 +39,8 @@
 		"sprintf-js": "^1.1.1"
 	},
 	"devDependencies": {
-		"eslint": "^4.17.0"
+		"eslint": "^4.17.0",
+		"jest": "^22.4.3"
 	},
 	"eslintConfig": {
 		"env": {
@@ -62,6 +65,19 @@
 				"error",
 				"always"
 			]
-		}
+		},
+		"overrides": [
+			{
+				"files": [
+					"test/*.js"
+				],
+				"env": {
+					"jest": true
+				},
+				"parserOptions": {
+					"sourceType": "module"
+				}
+			}
+		]
 	}
 }
