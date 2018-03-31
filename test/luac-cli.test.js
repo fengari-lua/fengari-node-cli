@@ -3,6 +3,7 @@ const child_process = require("child_process");
 
 const luac_path = require.resolve("../src/luac-cli.js");
 
+
 test('Has correct -v output', () => new Promise((resolve) => {
     const child = child_process.fork(luac_path, ["-v"], {
         silent: true
