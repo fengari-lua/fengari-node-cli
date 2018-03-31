@@ -1,3 +1,8 @@
+[![Build Status](https://travis-ci.org/fengari-lua/fengari-node-cli.svg?branch=master)](https://travis-ci.org/fengari-lua/fengari-node-cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![#fengari on Freenode](https://img.shields.io/Freenode/%23fengari.png)](https://webchat.freenode.net/?channels=fengari)
+
+
 # fengari-node-cli
 
 The Lua command line application, but using [fengari](http://fengari.io/) under [node.js](https://nodejs.org/)
