@@ -2,10 +2,10 @@
 "use strict";
 
 const {
+    FENGARI_COPYRIGHT,
     to_jsstring,
     to_luastring,
     lua: {
-        LUA_COPYRIGHT,
         LUA_OK,
         LUA_SIGNATURE,
         lua_checkstack,
@@ -170,7 +170,7 @@ const doargs = function() {
     }
 
     if (version) {
-        print(LUA_COPYRIGHT + "\n");
+        print(FENGARI_COPYRIGHT + "\n");
         if (version === process.argv.length - 2) process.exit(0);
     }
     return i;
