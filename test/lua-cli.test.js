@@ -8,7 +8,7 @@ test('Ignores env var when using -E', () => new Promise((resolve) => {
         env: { LUA_INIT: 'print("failed")' },
         silent: true
     });
-    let output = ''
+    let output = '';
     child.stdout.on('data', (data) => {
         output += data;
     });
@@ -38,7 +38,7 @@ test('Runs empty script', () => new Promise((resolve) => {
     const child = child_process.fork(lua_path, ["-E", "-e", ""], {
         silent: true
     });
-    let output = ''
+    let output = '';
     child.stdout.on('data', (data) => {
         output += data;
     });
@@ -54,7 +54,7 @@ test('Runs LUA_INIT when -E is not present', () => new Promise((resolve) => {
         env: { LUA_INIT: 'print("success")' },
         silent: true
     });
-    let output = ''
+    let output = '';
     child.stdout.on('data', (data) => {
         output += data;
     });
