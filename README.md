@@ -5,7 +5,7 @@
 
 # fengari-node-cli
 
-The Lua command line application, but using [fengari](http://fengari.io/) under [node.js](https://nodejs.org/)
+The Lua command line application, but using [fengari](https://fengari.io/) under [node.js](https://nodejs.org/)
 
 This project consists of `fengari` and `fengaric` command line applications that provide functionality equivalent to the [`lua`](http://www.lua.org/manual/5.3/manual.html#7) and [`luac`](https://www.lua.org/manual/5.3/luac.html) programs.
 
