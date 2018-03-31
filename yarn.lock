@@ -1067,8 +1067,9 @@ fb-watchman@^2.0.0:
   dependencies:
     bser "^2.0.0"
 
-fengari@^0.0:
-  version "0.0.1-rc.2"
+fengari@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/fengari/-/fengari-0.1.0.tgz#fbc7566a43e3c6e2b37d6c4246f87de9b0b31866"
   dependencies:
     readline-sync "^1.4.9"
     sprintf-js "^1.1.1"

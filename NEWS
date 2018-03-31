@@ -1,0 +1,4 @@
+0.1.0 - 2018-03-31
+
+  - Node.js based versions of `lua` and `luac` command line tools
+  - Implements all options of the Lua 5.3 executables

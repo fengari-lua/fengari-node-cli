@@ -1,6 +1,6 @@
 {
 	"name": "fengari-node-cli",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"description": " The Lua command line application, but using fengari under node",
 	"bin": {
 		"fengari": "./src/lua-cli.js",
@@ -35,7 +35,7 @@
 	},
 	"homepage": "https://github.com/fengari-lua/fengari-node-cli#readme",
 	"dependencies": {
-		"fengari": "^0.0",
+		"fengari": "^0.1.0",
 		"readline-sync": "^1.4.7",
 		"sprintf-js": "^1.1.1"
 	},
