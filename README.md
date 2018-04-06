@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/fengari-lua/fengari-node-cli.svg?branch=master)](https://travis-ci.org/fengari-lua/fengari-node-cli)
+[![npm](https://img.shields.io/npm/v/fengari-node-cli.svg)](https://npmjs.com/package/fengari-node-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![#fengari on Freenode](https://img.shields.io/Freenode/%23fengari.png)](https://webchat.freenode.net/?channels=fengari)
 
