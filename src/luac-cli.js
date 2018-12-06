@@ -28,8 +28,8 @@ const {
 } = require('fengari');
 
 /* We need some fengari internals */
-let fengariPath = require.resolve('fengari');
-fengariPath = fengariPath.substr(0, fengariPath.lastIndexOf('/'));
+const path = require('path');
+const fengariPath = path.dirname(require.resolve('fengari'));
 const {
     constant_types: {
         LUA_TBOOLEAN,
@@ -39,7 +39,7 @@ const {
         LUA_TNUMINT,
         LUA_TSHRSTR
     }
-} = require(`${fengariPath}/defs.js`);
+} = require(path.resolve(fengariPath, 'defs.js'));
 const {
     INDEXK,
     ISK,
@@ -85,11 +85,11 @@ const {
     iABx,
     iAsBx,
     iAx
-} = require(`${fengariPath}/lopcodes.js`);
+} = require(path.resolve(fengariPath, 'lopcodes.js'));
 const {
     LUA_INTEGER_FMT,
     LUA_NUMBER_FMT
-} = require(`${fengariPath}/luaconf.js`);
+} = require(path.resolve(fengariPath, 'luaconf.js'));
 
 const fs       = require("fs");
 const sprintf  = require("sprintf-js").sprintf;
