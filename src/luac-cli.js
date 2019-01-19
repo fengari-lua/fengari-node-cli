@@ -156,7 +156,7 @@ const doargs = function() {
             if (arg === "-") output = null;
         } else if (arg === "-p")  /* parse only */
             dumping = false;
-        else if (arg === "s")  /* strip debug information */
+        else if (arg === "-s")  /* strip debug information */
             stripping = true;
         else if (arg === "-v")  /* show version */
             ++version;
