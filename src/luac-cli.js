@@ -517,4 +517,6 @@ const PrintFunction = function(f, full) {
         PrintFunction(f.p[i], full);
 };
 
-main();
+if (require.main === module) {
+    main();
+}
