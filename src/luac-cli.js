@@ -327,143 +327,149 @@ const MYK = function(x) {
     return -1-x;
 };
 
+const PrintInstruction = function(f, pc) {
+    let oldpc = pc;
+    let i = f.code[pc];
+    let o = i.opcode;
+    let a = i.A;
+    let b = i.B;
+    let c = i.C;
+    let ax = i.Ax;
+    let bx = i.Bx;
+    let sbx = i.sBx;
+
+    let line = f.lineinfo[pc] ? f.lineinfo[pc] : -1;
+    print(`\t${pc + 1}\t`);
+    if (line > 0) print(`[${line}]\t`);
+    else print("[-]\t");
+
+    let opcode = OpCodes[o].substr(0,9);
+    let tabfill = 9 - opcode.length;
+
+    print(`${opcode}${" ".repeat(tabfill)}\t`);
+
+    switch(getOpMode(o)) {
+        case iABC: {
+            print(`${a}`);
+            if (getBMode(o) != OpArgN)
+                print(` ${ISK(b) ? MYK(INDEXK(b)) : b}`);
+            if (getCMode(o) != OpArgN)
+                print(` ${ISK(c) ? MYK(INDEXK(c)) : c}`);
+            break;
+        }
+        case iABx: {
+            print(`${a}`);
+            if (getBMode(o) == OpArgK) print(` ${MYK(bx)}`);
+            if (getBMode(o) == OpArgU) print(` ${bx}`);
+            break;
+        }
+        case iAsBx: {
+            print(`${a} ${sbx}`);
+            break;
+        }
+        case iAx: {
+            print(`${MYK(ax)}`);
+            break;
+        }
+    }
+
+    switch(o) {
+        case OP_LOADK: {
+            print("\t; ");
+            PrintConstant(f, bx);
+            break;
+        }
+        case OP_GETUPVAL:
+        case OP_SETUPVAL: {
+            print(`\t; ${UPVALNAME(f, b)}`);
+            break;
+        }
+        case OP_GETTABUP: {
+            print(`\t; ${UPVALNAME(f, b)}`);
+            if (ISK(c)) {
+                print(" ");
+                PrintConstant(f, INDEXK(c));
+            }
+            break;
+        }
+        case OP_SETTABUP: {
+            print(`\t; ${UPVALNAME(f, a)}`);
+            if (ISK(b)) {
+                print(" ");
+                PrintConstant(f, INDEXK(b));
+            }
+            if (ISK(c)) {
+                print(" ");
+                PrintConstant(f, INDEXK(c));
+            }
+            break;
+        }
+        case OP_GETTABLE:
+        case OP_SELF: {
+            if (ISK(c)) {
+                print("\t; ");
+                PrintConstant(f, INDEXK(c));
+            }
+            break;
+        }
+        case OP_SETTABLE:
+        case OP_ADD:
+        case OP_SUB:
+        case OP_MUL:
+        case OP_POW:
+        case OP_DIV:
+        case OP_IDIV:
+        case OP_BAND:
+        case OP_BOR:
+        case OP_BXOR:
+        case OP_SHL:
+        case OP_SHR:
+        case OP_EQ:
+        case OP_LT:
+        case OP_LE: {
+            if (ISK(b) || ISK(c)) {
+                print("\t; ");
+                if (ISK(b)) PrintConstant(f, INDEXK(b));
+                else print("-");
+                print(" ");
+                if (ISK(c)) PrintConstant(f, INDEXK(c));
+                else print("-");
+            }
+            break;
+        }
+        case OP_JMP:
+        case OP_FORLOOP:
+        case OP_FORPREP:
+        case OP_TFORLOOP: {
+            print(`\t; to ${sbx + pc + 2}`);
+            break;
+        }
+        case OP_CLOSURE: {
+            print(`\t; 0x${f.p[bx].id.toString(16)}`); // TODO: %p
+            break;
+        }
+        case OP_SETLIST: {
+            if (c === 0) print(`\t; ${f.code[++pc]}`);
+            else print(`\t; ${c}`);
+            break;
+        }
+        case OP_EXTRAARG: {
+            print("\t; ");
+            PrintConstant(f, ax);
+            break;
+        }
+        default:
+            break;
+    }
+
+    print("\n");
+    return pc - oldpc;
+};
+exports.PrintInstruction = PrintInstruction;
+
 const PrintCode = function(f) {
-    let code = f.code;
-    for (let pc = 0; pc < code.length; pc++) {
-        let i = code[pc];
-        let o = i.opcode;
-        let a = i.A;
-        let b = i.B;
-        let c = i.C;
-        let ax = i.Ax;
-        let bx = i.Bx;
-        let sbx = i.sBx;
-
-        let line = f.lineinfo[pc] ? f.lineinfo[pc] : -1;
-        print(`\t${pc + 1}\t`);
-        if (line > 0) print(`[${line}]\t`);
-        else print("[-]\t");
-
-        let opcode = OpCodes[o].substr(0,9);
-        let tabfill = 9 - opcode.length;
-
-        print(`${opcode}${" ".repeat(tabfill)}\t`);
-
-        switch(getOpMode(o)) {
-            case iABC: {
-                print(`${a}`);
-                if (getBMode(o) != OpArgN)
-                    print(` ${ISK(b) ? MYK(INDEXK(b)) : b}`);
-                if (getCMode(o) != OpArgN)
-                    print(` ${ISK(c) ? MYK(INDEXK(c)) : c}`);
-                break;
-            }
-            case iABx: {
-                print(`${a}`);
-                if (getBMode(o) == OpArgK) print(` ${MYK(bx)}`);
-                if (getBMode(o) == OpArgU) print(` ${bx}`);
-                break;
-            }
-            case iAsBx: {
-                print(`${a} ${sbx}`);
-                break;
-            }
-            case iAx: {
-                print(`${MYK(ax)}`);
-                break;
-            }
-        }
-
-        switch(o) {
-            case OP_LOADK: {
-                print("\t; ");
-                PrintConstant(f, bx);
-                break;
-            }
-            case OP_GETUPVAL:
-            case OP_SETUPVAL: {
-                print(`\t; ${UPVALNAME(f, b)}`);
-                break;
-            }
-            case OP_GETTABUP: {
-                print(`\t; ${UPVALNAME(f, b)}`);
-                if (ISK(c)) {
-                    print(" ");
-                    PrintConstant(f, INDEXK(c));
-                }
-                break;
-            }
-            case OP_SETTABUP: {
-                print(`\t; ${UPVALNAME(f, a)}`);
-                if (ISK(b)) {
-                    print(" ");
-                    PrintConstant(f, INDEXK(b));
-                }
-                if (ISK(c)) {
-                    print(" ");
-                    PrintConstant(f, INDEXK(c));
-                }
-                break;
-            }
-            case OP_GETTABLE:
-            case OP_SELF: {
-                if (ISK(c)) {
-                    print("\t; ");
-                    PrintConstant(f, INDEXK(c));
-                }
-                break;
-            }
-            case OP_SETTABLE:
-            case OP_ADD:
-            case OP_SUB:
-            case OP_MUL:
-            case OP_POW:
-            case OP_DIV:
-            case OP_IDIV:
-            case OP_BAND:
-            case OP_BOR:
-            case OP_BXOR:
-            case OP_SHL:
-            case OP_SHR:
-            case OP_EQ:
-            case OP_LT:
-            case OP_LE: {
-                if (ISK(b) || ISK(c)) {
-                    print("\t; ");
-                    if (ISK(b)) PrintConstant(f, INDEXK(b));
-                    else print("-");
-                    print(" ");
-                    if (ISK(c)) PrintConstant(f, INDEXK(c));
-                    else print("-");
-                }
-                break;
-            }
-            case OP_JMP:
-            case OP_FORLOOP:
-            case OP_FORPREP:
-            case OP_TFORLOOP: {
-                print(`\t; to ${sbx + pc + 2}`);
-                break;
-            }
-            case OP_CLOSURE: {
-                print(`\t; 0x${f.p[bx].id.toString(16)}`); // TODO: %p
-                break;
-            }
-            case OP_SETLIST: {
-                if (c === 0) print(`\t; ${code[++pc]}`);
-                else print(`\t; ${c}`);
-                break;
-            }
-            case OP_EXTRAARG: {
-                print("\t; ");
-                PrintConstant(f, ax);
-                break;
-            }
-            default:
-                break;
-        }
-
-        print("\n");
+    for (let pc = 0; pc < f.code.length; pc++) {
+        pc += PrintInstruction(f, pc);
     }
 };
 
